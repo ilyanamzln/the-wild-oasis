@@ -11,17 +11,11 @@ export async function getCabins() {
   return data;
 }
 
-export async function createCabin(newCabin) {
-  const imageName = `${Math.random()}-${newCabin.image.name}`.replaceAll(
-    "/",
-    ""
-  );
-
-  const imagePath = `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
-
+export async function createCabin(cabin) {
+  const { hasImagePath, imagePath, imageName } = getImagePath(cabin);
   const { data, error } = await supabase
     .from("cabins")
-    .insert([{ ...newCabin, image: imagePath }])
+    .insert([{ ...cabin, image: imagePath }])
     .select()
     .single();
 
@@ -30,26 +24,15 @@ export async function createCabin(newCabin) {
     throw new Error("Fail to add cabin");
   }
 
-  await uploadImage(imageName, newCabin.image, data.id);
+  if (hasImagePath) return data;
+
+  await uploadImage(imageName, cabin.image, data.id);
 
   return data;
 }
 
 export async function updateCabin(cabin, id) {
-  const hasImagePath = cabin?.image?.startsWith?.(supabaseUrl);
-
-  let imagePath = "";
-  let imageName = "";
-
-  if (hasImagePath) {
-    imagePath = cabin.image;
-  } else {
-    imageName = `${Math.random()}-${cabin.image.name}`.replaceAll("/", "");
-    imagePath = hasImagePath
-      ? updateCabin.image
-      : `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
-  }
-
+  const { hasImagePath, imagePath, imageName } = getImagePath(cabin);
   const { data, error } = await supabase
     .from("cabins")
     .update({ ...cabin, image: imagePath })
@@ -67,6 +50,24 @@ export async function updateCabin(cabin, id) {
   await uploadImage(imageName, cabin.image, id);
 
   return data;
+}
+
+function getImagePath(cabin) {
+  const hasImagePath = cabin?.image?.startsWith?.(supabaseUrl);
+
+  let imagePath = "";
+  let imageName = "";
+
+  if (hasImagePath) {
+    imagePath = cabin.image;
+  } else {
+    imageName = `${Math.random()}-${cabin.image.name}`.replaceAll("/", "");
+    imagePath = hasImagePath
+      ? updateCabin.image
+      : `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
+  }
+
+  return { hasImagePath, imagePath, imageName };
 }
 
 async function uploadImage(imageName, image, cabinId) {
