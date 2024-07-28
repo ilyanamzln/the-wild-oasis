@@ -36,13 +36,11 @@ export async function createCabin(newCabin) {
 }
 
 export async function updateCabin(cabin, id) {
-  console.log("updatedCabin", cabin);
   const hasImagePath = cabin?.image?.startsWith?.(supabaseUrl);
 
   let imagePath = "";
   let imageName = "";
 
-  console.log("hasImagePath", hasImagePath);
   if (hasImagePath) {
     imagePath = cabin.image;
   } else {
