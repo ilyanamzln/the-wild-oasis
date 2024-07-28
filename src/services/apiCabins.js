@@ -19,32 +19,72 @@ export async function createCabin(newCabin) {
 
   const imagePath = `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
 
-  // 1. Create cabin
   const { data, error } = await supabase
     .from("cabins")
     .insert([{ ...newCabin, image: imagePath }])
-    .select();
+    .select()
+    .single();
 
   if (error) {
     console.log(error);
-    throw new Error("Cabins could not be loaded");
+    throw new Error("Fail to add cabin");
   }
 
+  await uploadImage(imageName, newCabin.image, data.id);
+
+  return data;
+}
+
+export async function updateCabin(cabin, id) {
+  console.log("updatedCabin", cabin);
+  const hasImagePath = cabin?.image?.startsWith?.(supabaseUrl);
+
+  let imagePath = "";
+  let imageName = "";
+
+  console.log("hasImagePath", hasImagePath);
+  if (hasImagePath) {
+    imagePath = cabin.image;
+  } else {
+    imageName = `${Math.random()}-${cabin.image.name}`.replaceAll("/", "");
+    imagePath = hasImagePath
+      ? updateCabin.image
+      : `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
+  }
+
+  const { data, error } = await supabase
+    .from("cabins")
+    .update({ ...cabin, image: imagePath })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.log(error);
+    throw new Error("Fail to update cabin");
+  }
+
+  if (hasImagePath) return data;
+
+  await uploadImage(imageName, cabin.image, id);
+
+  return data;
+}
+
+async function uploadImage(imageName, image, cabinId) {
   // 2. Upload image
   const { error: storageError } = await supabase.storage
     .from("cabin-images")
-    .upload(imageName, newCabin.image);
+    .upload(imageName, image);
 
   // 3. Delete the cabin IF there was an error uploading image
   if (storageError) {
-    await supabase.from("cabins").delete().eq("id", data.id);
+    await supabase.from("cabins").delete().eq("id", cabinId);
     console.error(storageError);
     throw new Error(
       "Cabin image could not be uploaded and the cabin was not created"
     );
   }
-
-  return data;
 }
 
 export async function deleteCabins(id) {
