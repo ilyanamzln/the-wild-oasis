@@ -40,8 +40,8 @@ function Filter({ filterField, options }) {
   const currentFilter = searchParams.get(filterField) || options.at(0).value;
 
   function handleClick(value) {
-    // reset pagination if filter changes
-    if (searchParams.get("page")) searchParams.set("page", 1);
+    // remove pagination if filter changes
+    searchParams.delete("page");
 
     setSearchParams((searchParams) => {
       searchParams.set(filterField, value);
