@@ -1,4 +1,5 @@
-import supabase, { supabaseUrl } from "./supabase";
+import supabase from "./supabase";
+import { SUPABASE_URL } from "../utils/constants";
 
 export async function getCabins() {
   const { data, error } = await supabase.from("cabins").select("*");
@@ -53,7 +54,7 @@ export async function updateCabin(cabin, id) {
 }
 
 function getImagePath(cabin) {
-  const hasImagePath = cabin?.image?.startsWith?.(supabaseUrl);
+  const hasImagePath = cabin?.image?.startsWith?.(SUPABASE_URL);
 
   let imagePath = "";
   let imageName = "";
@@ -64,7 +65,7 @@ function getImagePath(cabin) {
     imageName = `${Math.random()}-${cabin.image.name}`.replaceAll("/", "");
     imagePath = hasImagePath
       ? updateCabin.image
-      : `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
+      : `${SUPABASE_URL}/storage/v1/object/public/cabin-images/${imageName}`;
   }
 
   return { hasImagePath, imagePath, imageName };
