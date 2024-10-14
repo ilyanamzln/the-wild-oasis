@@ -19,7 +19,9 @@ function Sidebar() {
     <StyledSidebar>
       <Logo />
       <MainNav />
-      <Uploader />
+
+      {/* For devs to upload latest data */}
+      {/* <Uploader /> */}
     </StyledSidebar>
   );
 }
