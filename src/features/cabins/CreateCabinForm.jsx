@@ -9,7 +9,7 @@ import Textarea from "../../ui/Textarea";
 import FormRow from "../../ui/FormRow";
 
 function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
-  const { isCreating, addCabin } = useCreateCabin();
+  const { isCreating, createCabin } = useCreateCabin();
   const { isUpdating, editCabin } = useUpdateCabin();
 
   const { id: editId, ...editValues } = cabinToEdit;
@@ -36,7 +36,7 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
             },
           }
         )
-      : addCabin(
+      : createCabin(
           { ...data, image: image },
           {
             onSuccess: (data) => {
@@ -71,6 +71,7 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
         <Input
           type="number"
           id="maxCapacity"
+          min={1}
           disabled={isWorking}
           {...register("max_capacity", {
             required: "This field is required",
@@ -86,6 +87,7 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
         <Input
           type="number"
           id="regularPrice"
+          min={1}
           disabled={isWorking}
           {...register("regular_price", {
             required: "This field is required",
@@ -102,9 +104,14 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
           type="number"
           id="discount"
           defaultValue={0}
+          min={0}
           disabled={isWorking}
           {...register("discount", {
             required: "This field is required",
+            min: {
+              value: 0,
+              message: "Discount cannot be lower than 0",
+            },
             validate: (value) =>
               +value <= getValues().regular_price ||
               "Discount should be less than regular price",
@@ -117,7 +124,7 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
         error={errors?.description?.message}
       >
         <Textarea
-          type="number"
+          type="text"
           id="description"
           defaultValue=""
           disabled={isWorking}
